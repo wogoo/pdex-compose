@@ -9,10 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -37,14 +34,13 @@ import coil.request.ImageRequest
 import com.google.accompanist.coil.CoilImage
 import com.plcoding.jetpackcomposepokedex.R
 import com.plcoding.jetpackcomposepokedex.data.models.PokedexListEntry
-import com.plcoding.jetpackcomposepokedex.data.remote.responses.PokemonList
 import com.plcoding.jetpackcomposepokedex.ui.theme.RobotoCondensed
 
 @Composable
 fun PokemonListScreen(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltNavGraphViewModel()
-    ) {
+) {
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
@@ -57,9 +53,9 @@ fun PokemonListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(CenterHorizontally)
-                )
+            )
             SearchBar(
-                hint = "Search ...",
+                hint = "Search...",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -69,17 +65,15 @@ fun PokemonListScreen(
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
         }
-
     }
 }
-
 
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
     hint: String = "",
     onSearch: (String) -> Unit = {}
-){
+) {
     var text by remember {
         mutableStateOf("")
     }
@@ -87,7 +81,7 @@ fun SearchBar(
         mutableStateOf(hint != "")
     }
 
-    Box(modifier = Modifier) {
+    Box(modifier = modifier) {
         BasicTextField(
             value = text,
             onValueChange = {
@@ -103,15 +97,15 @@ fun SearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = it != FocusState.Active && text.isNotEmpty()
+                    isHintDisplayed = it != FocusState.Active && text.isEmpty()
                 }
         )
-        if (isHintDisplayed) {
+        if(isHintDisplayed) {
             Text(
                 text = hint,
                 color = Color.LightGray,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
             )
         }
     }
@@ -122,10 +116,10 @@ fun PokemonList(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltNavGraphViewModel()
 ) {
-    val pokemonList by remember {viewModel.pokemonList}
-    val endReached by remember {viewModel.endReached}
-    val loadError by remember {viewModel.loadError}
-    val isLoading by remember {viewModel.isLoading}
+    val pokemonList by remember { viewModel.pokemonList }
+    val endReached by remember { viewModel.endReached }
+    val loadError by remember { viewModel.loadError }
+    val isLoading by remember { viewModel.isLoading }
     val isSearching by remember { viewModel.isSearching }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
@@ -136,14 +130,18 @@ fun PokemonList(
         }
         items(itemCount) {
             if(it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
-                viewModel.loadPokemonPaginated()
+                LaunchedEffect(key1 = true) {
+                    viewModel.loadPokemonPaginated()
+                }
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
     }
-    Box(contentAlignment = Center ,
-        modifier = Modifier.fillMaxSize())
-    {
+
+    Box(
+        contentAlignment = Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
         if(isLoading) {
             CircularProgressIndicator(color = MaterialTheme.colors.primary)
         }
@@ -153,6 +151,7 @@ fun PokemonList(
             }
         }
     }
+
 }
 
 @Composable
@@ -183,7 +182,7 @@ fun PokedexEntry(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_details_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
                 )
             }
     ) {
@@ -228,7 +227,7 @@ fun PokedexRow(
     Column {
         Row {
             PokedexEntry(
-                entry = entries[rowIndex * 2], 
+                entry = entries[rowIndex * 2],
                 navController = navController,
                 modifier = Modifier.weight(1f)
             )
@@ -256,10 +255,9 @@ fun RetrySection(
         Text(error, color = Color.Red, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Button(
-            onClick = {onRetry()},
+            onClick = { onRetry() },
             modifier = Modifier.align(CenterHorizontally)
-        )        
-        {           
+        ) {
             Text(text = "Retry")
         }
     }
